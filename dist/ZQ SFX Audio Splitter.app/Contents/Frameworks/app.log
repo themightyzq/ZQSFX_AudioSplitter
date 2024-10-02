@@ -1,0 +1,6 @@
+2024-10-02 15:30:44,708 - DEBUG - Found FFmpeg in app directory: /Volumes/QNAP/_PERSONAL/Projects_Random/audio_splitter/dist/ZQ SFX Audio Splitter.app/Contents/Frameworks/ffmpeg/ffmpeg
+2024-10-02 15:30:44,713 - DEBUG - Found FFprobe in app directory: /Volumes/QNAP/_PERSONAL/Projects_Random/audio_splitter/dist/ZQ SFX Audio Splitter.app/Contents/Frameworks/ffmpeg/ffprobe
+2024-10-02 15:30:44,713 - INFO - Using FFmpeg at: /Volumes/QNAP/_PERSONAL/Projects_Random/audio_splitter/dist/ZQ SFX Audio Splitter.app/Contents/Frameworks/ffmpeg/ffmpeg
+2024-10-02 15:30:44,713 - INFO - Using FFprobe at: /Volumes/QNAP/_PERSONAL/Projects_Random/audio_splitter/dist/ZQ SFX Audio Splitter.app/Contents/Frameworks/ffmpeg/ffprobe
+2024-10-02 15:30:44,713 - INFO - FFmpeg and FFprobe paths set successfully.
+2024-10-02 15:30:46,579 - DEBUG - Starting the Tkinter main loop.

@@ -1,0 +1,6 @@
+2024-10-01 22:02:35,984 - DEBUG - Found FFmpeg in app directory: /Volumes/QNAP/_PERSONAL/Projects_Random/audio_splitter/ffmpeg/ffmpeg
+2024-10-01 22:02:35,989 - DEBUG - Found FFprobe in app directory: /Volumes/QNAP/_PERSONAL/Projects_Random/audio_splitter/ffmpeg/ffprobe
+2024-10-01 22:02:35,989 - INFO - Using FFmpeg at: /Volumes/QNAP/_PERSONAL/Projects_Random/audio_splitter/ffmpeg/ffmpeg
+2024-10-01 22:02:35,989 - INFO - Using FFprobe at: /Volumes/QNAP/_PERSONAL/Projects_Random/audio_splitter/ffmpeg/ffprobe
+2024-10-01 22:02:35,989 - INFO - FFmpeg and FFprobe paths set successfully.
+2024-10-01 22:02:36,099 - DEBUG - Starting the Tkinter main loop.
