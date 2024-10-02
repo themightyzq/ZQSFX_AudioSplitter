@@ -28,13 +28,13 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          pyinstaller --windowed --onedir --name "ZQ SFX Audio Splitter" audio_splitter_gui.py `
-          --add-binary "ffmpeg\ffmpeg.exe;ffmpeg" `
-          --add-binary "ffmpeg\ffprobe.exe;ffmpeg" `
-          --hidden-import=tkinter --hidden-import=pydub --hidden-import=numpy `
-          --exclude-module=test --exclude-module=unittest --exclude-module=email `
-          --exclude-module=html --exclude-module=http --exclude-module=xml `
-          --exclude-module=urllib --log-level=DEBUG --debug=all
+          pyinstaller --windowed --onedir --name "ZQ SFX Audio Splitter" audio_splitter_gui.py \
+          --add-binary "ffmpeg/ffmpeg:ffmpeg" \
+          --add-binary "ffmpeg/ffprobe:ffmpeg" \
+          --hidden-import=tkinter --hidden-import=pydub --hidden-import=numpy \
+          --exclude-module=test --exclude-module=unittest --exclude-module=email \
+          --exclude-module=html --exclude-module=http --exclude-module=xml \
+          --exclude-module=urllib --log-level=DEBUG
 
       - name: Upload macOS Artifact
         uses: actions/upload-artifact@v3
@@ -64,14 +64,8 @@ jobs:
           Remove-Item -Force *.spec -ErrorAction SilentlyContinue
 
       - name: Build with PyInstaller
-        run: |
-          pyinstaller --windowed --onedir --name "ZQ SFX Audio Splitter" audio_splitter_gui.py `
-          --add-binary "ffmpeg\ffmpeg.exe;ffmpeg" `
-          --add-binary "ffmpeg\ffprobe.exe;ffmpeg" `
-          --hidden-import=tkinter --hidden-import=pydub --hidden-import=numpy `
-          --exclude-module=test --exclude-module=unittest --exclude-module=email `
-          --exclude-module=html --exclude-module=http --exclude-module=xml `
-          --exclude-module=urllib --log-level=DEBUG --debug=all
+         run: |
+          pyinstaller --windowed --onedir --name "ZQ SFX Audio Splitter" audio_splitter_gui.py --add-binary "ffmpeg\ffmpeg.exe;ffmpeg" --add-binary "ffmpeg\ffprobe.exe;ffmpeg" --hidden-import=tkinter --hidden-import=pydub --hidden-import=numpy --exclude-module=test --exclude-module=unittest --exclude-module=email --exclude-module=html --exclude-module=http --exclude-module=xml --exclude-module=urllib --log-level=DEBUG --debug=all
 
       - name: Upload Windows Artifact
         uses: actions/upload-artifact@v3
