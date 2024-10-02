@@ -59,15 +59,15 @@ jobs:
 
       - name: Clean Previous Builds
         run: |
-          rmdir /s /q dist
-          rmdir /s /q build
-          del /f /q *.spec
+          Remove-Item -Recurse -Force dist
+          Remove-Item -Recurse -Force build
+          Remove-Item -Force *.spec
 
       - name: Build with PyInstaller
         run: |
           pyinstaller --windowed --onedir --name "ZQ SFX Audio Splitter" audio_splitter_gui.py ^
-          --add-binary "ffmpeg/ffmpeg.exe;ffmpeg" ^
-          --add-binary "ffmpeg/ffprobe.exe;ffmpeg" ^
+          --add-binary "ffmpeg\ffmpeg.exe;ffmpeg" ^
+          --add-binary "ffmpeg\ffprobe.exe;ffmpeg" ^
           --hidden-import=tkinter --hidden-import=pydub --hidden-import=numpy ^
           --exclude-module=test --exclude-module=unittest --exclude-module=email ^
           --exclude-module=html --exclude-module=http --exclude-module=xml ^
