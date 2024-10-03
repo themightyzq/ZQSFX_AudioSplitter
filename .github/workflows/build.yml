@@ -7,95 +7,95 @@ on:
     branches: [ main ]
 
 jobs:
- build-macos:
-  runs-on: macos-latest
-  steps:
-    - uses: actions/checkout@v3
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'  # Specify your Python version
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'  # Specify your Python version
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install pyinstaller pydub numpy
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller pydub numpy
 
-    - name: Clean Previous Builds
-      run: |
-        rm -rf dist/ build/ __pycache__/ *.spec
+      - name: Clean Previous Builds
+        run: |
+          rm -rf dist/ build/ __pycache__/ *.spec
 
-    - name: Download FFmpeg
-      shell: bash
-      run: |
-        echo "Downloading FFmpeg..."
-        curl -L -o ffmpeg.zip https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip
-        echo "Extracting FFmpeg..."
-        unzip ffmpeg.zip
-        ffmpeg_dir=$(ls -d ffmpeg-*-essentials)
-        echo "Moving FFmpeg binaries..."
-        mkdir -p ffmpeg
-        mv $ffmpeg_dir/bin/ffmpeg ffmpeg/
-        mv $ffmpeg_dir/bin/ffprobe ffmpeg/
-        echo "Cleaning up..."
-        rm -rf $ffmpeg_dir ffmpeg.zip
-        echo "FFmpeg binaries downloaded and moved successfully."
+      - name: Download FFmpeg
+        shell: bash
+        run: |
+          echo "Downloading FFmpeg..."
+          curl -L -o ffmpeg.zip https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip
+          echo "Extracting FFmpeg..."
+          unzip ffmpeg.zip
+          ffmpeg_dir=$(ls -d ffmpeg-*-essentials)
+          echo "Moving FFmpeg binaries..."
+          mkdir -p ffmpeg
+          mv $ffmpeg_dir/bin/ffmpeg ffmpeg/
+          mv $ffmpeg_dir/bin/ffprobe ffmpeg/
+          echo "Cleaning up..."
+          rm -rf $ffmpeg_dir ffmpeg.zip
+          echo "FFmpeg binaries downloaded and moved successfully."
 
-    - name: Verify FFmpeg Binaries
-      shell: bash
-      run: |
-        if [ -f "ffmpeg/ffmpeg" ]; then
-          echo "ffmpeg is present."
-        else
-          echo "ffmpeg is missing." >&2
-          exit 1
-        fi
+      - name: Verify FFmpeg Binaries
+        shell: bash
+        run: |
+          if [ -f "ffmpeg/ffmpeg" ]; then
+            echo "ffmpeg is present."
+          else
+            echo "ffmpeg is missing." >&2
+            exit 1
+          fi
 
-        if [ -f "ffmpeg/ffprobe" ]; then
-          echo "ffprobe is present."
-        else
-          echo "ffprobe is missing." >&2
-          exit 1
-        fi
+          if [ -f "ffmpeg/ffprobe" ]; then
+            echo "ffprobe is present."
+          else
+            echo "ffprobe is missing." >&2
+            exit 1
+          fi
 
-        echo "Contents of ffmpeg directory:"
-        ls -la ffmpeg
+          echo "Contents of ffmpeg directory:"
+          ls -la ffmpeg
 
-    - name: Build with PyInstaller
-      run: |
-        pyinstaller --windowed --onedir --name "ZQ SFX Audio Splitter" audio_splitter_gui.py \
-        --add-binary "ffmpeg/ffmpeg:ffmpeg" \
-        --add-binary "ffmpeg/ffprobe:ffmpeg" \
-        --hidden-import=tkinter \
-        --hidden-import=pydub \
-        --hidden-import=numpy \
-        --exclude-module=test \
-        --exclude-module=unittest \
-        --exclude-module=email \
-        --exclude-module=html \
-        --exclude-module=xml \
-        --log-level=DEBUG \
-        --debug=all \
-        --osx-bundle-identifier "com.github.themightyzq.ZQSFXAudioSplitter"
+      - name: Build with PyInstaller
+        run: |
+          pyinstaller --windowed --onedir --name "ZQ SFX Audio Splitter" audio_splitter_gui.py \
+          --add-binary "ffmpeg/ffmpeg:ffmpeg" \
+          --add-binary "ffmpeg/ffprobe:ffmpeg" \
+          --hidden-import=tkinter \
+          --hidden-import=pydub \
+          --hidden-import=numpy \
+          --exclude-module=test \
+          --exclude-module=unittest \
+          --exclude-module=email \
+          --exclude-module=html \
+          --exclude-module=xml \
+          --log-level=DEBUG \
+          --debug=all \
+          --osx-bundle-identifier "com.github.themightyzq.ZQSFXAudioSplitter"
 
-    - name: Set Execute Permissions on macOS Executable
-      shell: bash
-      run: |
-        APP_PATH="dist/ZQ SFX Audio Splitter.app/Contents/MacOS/ZQ SFX Audio Splitter"
-        if [ -f "$APP_PATH" ]; then
-          chmod +x "$APP_PATH"
-          echo "Set execute permissions on $APP_PATH"
-        else
-          echo "Executable not found at $APP_PATH" >&2
-          exit 1
-        fi
+      - name: Set Execute Permissions on macOS Executable
+        shell: bash
+        run: |
+          APP_PATH="dist/ZQ SFX Audio Splitter.app/Contents/MacOS/ZQ SFX Audio Splitter"
+          if [ -f "$APP_PATH" ]; then
+            chmod +x "$APP_PATH"
+            echo "Set execute permissions on $APP_PATH"
+          else
+            echo "Executable not found at $APP_PATH" >&2
+            exit 1
+          fi
 
-    - name: Upload macOS Artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: macos-build
-        path: dist/
+      - name: Upload macOS Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: macos-build
+          path: dist/
 
   build-windows:
     runs-on: windows-latest
