@@ -15,7 +15,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: '3.9'  # Specify your Python version
 
       - name: Install dependencies
         run: |
@@ -55,7 +55,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: '3.9'  # Specify your Python version
 
       - name: Install dependencies
         run: |
@@ -79,7 +79,7 @@ jobs:
           Move-Item -Path ".\ffmpeg-*-essentials\bin\ffmpeg.exe" -Destination ".\ffmpeg\ffmpeg.exe" -Force
           Move-Item -Path ".\ffmpeg-*-essentials\bin\ffprobe.exe" -Destination ".\ffmpeg\ffprobe.exe" -Force
           Write-Output "Cleaning up..."
-          Remove-Item -Recurse -Force ".\ffmpeg-*-essentials" "ffmpeg.zip"
+          Remove-Item -Recurse -Force -Path ".\ffmpeg-*-essentials", "ffmpeg.zip"
           Write-Output "FFmpeg binaries downloaded and moved successfully."
 
       - name: Verify FFmpeg Binaries
@@ -131,7 +131,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: '3.9'  # Specify your Python version
 
       - name: Install dependencies
         run: |
