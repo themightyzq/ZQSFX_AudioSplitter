@@ -34,9 +34,10 @@ jobs:
           curl -L -o ffmpeg.zip https://evermeet.cx/ffmpeg/ffmpeg-6.0.zip
           echo "Extracting FFmpeg..."
           unzip -o ffmpeg.zip  # Use -o to overwrite without prompting
+          echo "Creating directory for FFmpeg binary..."
+          mkdir -p ffmpeg_dir
           echo "Moving FFmpeg binary..."
-          mkdir -p ffmpeg
-          mv ffmpeg ffmpeg/ffmpeg
+          mv ffmpeg ffmpeg_dir/ffmpeg
           echo "Cleaning up..."
           rm -rf ffmpeg.zip
           echo "FFmpeg binary downloaded and moved successfully."
@@ -44,21 +45,21 @@ jobs:
       - name: Verify FFmpeg Binary
         shell: bash
         run: |
-          if [ -f "ffmpeg/ffmpeg" ]; then
+          if [ -f "ffmpeg_dir/ffmpeg" ]; then
             echo "ffmpeg is present."
-            chmod +x ffmpeg/ffmpeg
+            chmod +x ffmpeg_dir/ffmpeg
           else
             echo "ffmpeg is missing." >&2
             exit 1
           fi
 
           echo "Contents of ffmpeg directory:"
-          ls -la ffmpeg
+          ls -la ffmpeg_dir
 
       - name: Build with PyInstaller
         run: |
           pyinstaller --windowed --onedir --name "ZQ SFX Audio Splitter" audio_splitter_gui.py \
-          --add-binary "ffmpeg/ffmpeg:ffmpeg" \
+          --add-binary "ffmpeg_dir/ffmpeg:ffmpeg" \
           --hidden-import=tkinter \
           --hidden-import=pydub \
           --hidden-import=numpy \
@@ -88,7 +89,7 @@ jobs:
         with:
           name: macos-build
           path: dist/
-        
+
   build-windows:
     runs-on: windows-latest
     steps:
