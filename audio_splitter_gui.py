@@ -644,7 +644,7 @@ def save_config():
 # Modify the main function to save config on exit
 def on_closing(root, message_queue):
     """
-    Handles the window close event by saving the configuration and closing the app.
+    Handles the window close event by saving the configuration and closing the app!
     
     Args:
         root (Tk): The main Tkinter window.
