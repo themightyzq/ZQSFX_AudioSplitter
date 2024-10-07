@@ -62,8 +62,8 @@ def get_ffmpeg_paths():
     app_root = get_application_root()
 
     # Paths to ffmpeg and ffprobe in the bundled app
-    ffmpeg_in_app = os.path.join(app_root, "ffmpeg", "ffmpeg")
-    ffprobe_in_app = os.path.join(app_root, "ffmpeg", "ffprobe")
+    ffmpeg_in_app = os.path.join(app_root, "Resources", "ffmpeg")
+    ffprobe_in_app = os.path.join(app_root, "Resources", "ffprobe")
     if os.name == "nt":
         ffmpeg_in_app += ".exe"  # Add .exe extension on Windows
         ffprobe_in_app += ".exe"
