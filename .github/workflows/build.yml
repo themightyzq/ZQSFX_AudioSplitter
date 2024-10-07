@@ -72,7 +72,7 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          pyinstaller --windowed --onedir --name "ZQ SFX Audio Splitter" audio_splitter_gui.py \
+          pyinstaller --windowed --onedir --distpath "dist/" --name "ZQ SFX Audio Splitter" audio_splitter_gui.py \
           --add-binary "ffmpeg_dir/ffmpeg:Resources" \
           --add-binary "ffmpeg_dir/ffprobe:Resources" \
           --hidden-import=tkinter \
@@ -87,7 +87,7 @@ jobs:
           --debug=all \
           --osx-bundle-identifier "com.github.themightyzq.ZQSFXAudioSplitter"
 
-      - name: List Contents of App Bundle
+      - name: List Contents of App Bundle Before Moving
         shell: bash
         run: |
           echo "Listing contents of the app bundle before moving binaries:"
@@ -174,7 +174,7 @@ jobs:
       - name: Upload macOS Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: macos-build
+          name: AudioSplitter-macos-build
           path: dist/
 
   build-windows:
@@ -259,45 +259,5 @@ jobs:
       - name: Upload Windows Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: windows-build
-          path: dist/
-
-  build-linux:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pyinstaller pydub numpy
-
-      - name: Clean Previous Builds
-        run: |
-          rm -rf dist/ build/ __pycache__/ *.spec
-
-      - name: Build with PyInstaller
-        run: |
-          pyinstaller --windowed --onedir --name "ZQ SFX Audio Splitter" audio_splitter_gui.py \
-          --add-binary "ffmpeg/ffmpeg:ffmpeg" \
-          --add-binary "ffmpeg/ffprobe:ffmpeg" \
-          --hidden-import=tkinter \
-          --hidden-import=pydub \
-          --hidden-import=numpy \
-          --exclude-module=test \
-          --exclude-module=unittest \
-          --exclude-module=email \
-          --exclude-module=html \
-          --exclude-module=xml \
-          --log-level=DEBUG
-
-      - name: Upload Linux Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: linux-build
+          name: AudioSplitter-windows-build
           path: dist/
