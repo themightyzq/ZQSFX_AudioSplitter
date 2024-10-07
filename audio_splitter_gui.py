@@ -16,13 +16,18 @@ import json  # For configuration persistence
 
 # Function to get the root directory of the application
 def get_application_root():
-    if getattr(sys, "frozen", False):
-        # If the application is run as a bundled executable
-        return sys._MEIPASS
+    if getattr(sys, 'frozen', False):
+        if sys.platform == 'darwin':
+            # For macOS app bundle
+            bundle_dir = os.path.dirname(sys.executable)
+            app_root = os.path.abspath(os.path.join(bundle_dir, '..', 'Resources'))
+        else:
+            # For Windows and Linux
+            app_root = sys._MEIPASS
     else:
-        # If the application is run as a script
-        return os.path.dirname(os.path.abspath(__file__))
-
+        # When running from source
+        app_root = os.path.dirname(os.path.abspath(__file__))
+    return app_root
 
 # Configure logging to write to a file inside the application root and to the console
 def setup_logging():
@@ -61,12 +66,16 @@ def get_ffmpeg_paths():
     """
     app_root = get_application_root()
 
-    # Paths to ffmpeg and ffprobe in the bundled app
-    ffmpeg_in_app = os.path.join(app_root, "Resources", "ffmpeg")
-    ffprobe_in_app = os.path.join(app_root, "Resources", "ffprobe")
     if os.name == "nt":
-        ffmpeg_in_app += ".exe"  # Add .exe extension on Windows
-        ffprobe_in_app += ".exe"
+        ffmpeg_filename = "ffmpeg.exe"
+        ffprobe_filename = "ffprobe.exe"
+    else:
+        ffmpeg_filename = "ffmpeg"
+        ffprobe_filename = "ffprobe"
+
+    # Paths to ffmpeg and ffprobe in the bundled app or source directory
+    ffmpeg_in_app = os.path.join(app_root, ffmpeg_filename)
+    ffprobe_in_app = os.path.join(app_root, ffprobe_filename)
 
     ffmpeg_path = None
     ffprobe_path = None
@@ -79,25 +88,35 @@ def get_ffmpeg_paths():
         logger.debug(f"Found FFprobe in app directory: {ffprobe_path}")
 
     # If not found, try to find ffmpeg and ffprobe in the system PATH
-    if ffmpeg_path is None or ffprobe_path is None:
-        ffmpeg_path = which("ffmpeg") if ffmpeg_path is None else ffmpeg_path
-        ffprobe_path = which("ffprobe") if ffprobe_path is None else ffprobe_path
+    if ffmpeg_path is None:
+        ffmpeg_path = which("ffmpeg")
+        if ffmpeg_path:
+            logger.debug(f"Found FFmpeg in system PATH: {ffmpeg_path}")
+    if ffprobe_path is None:
+        ffprobe_path = which("ffprobe")
+        if ffprobe_path:
+            logger.debug(f"Found FFprobe in system PATH: {ffprobe_path}")
 
     # If still not found, check common installation directories
     possible_locations = [
-        "/usr/local/bin",  # Homebrew default path
-        "/opt/homebrew/bin",  # Homebrew on Apple Silicon Macs
-        "/usr/bin",  # Common Linux path
-        "/usr/local/ffmpeg/bin",  # Alternative location
+        "/usr/local/bin",          # Common path on macOS
+        "/opt/homebrew/bin",       # Homebrew on Apple Silicon Macs
+        "/usr/bin",                # Common Linux path
+        "/usr/local/ffmpeg/bin",   # Alternative location
     ]
-
     for path in possible_locations:
-        if ffmpeg_path is None and os.path.exists(os.path.join(path, "ffmpeg")):
-            ffmpeg_path = os.path.join(path, "ffmpeg")
-            logger.debug(f"Found FFmpeg in possible location: {ffmpeg_path}")
-        if ffprobe_path is None and os.path.exists(os.path.join(path, "ffprobe")):
-            ffprobe_path = os.path.join(path, "ffprobe")
-            logger.debug(f"Found FFprobe in possible location: {ffprobe_path}")
+        if ffmpeg_path is None:
+            potential_ffmpeg = os.path.join(path, ffmpeg_filename)
+            if os.path.exists(potential_ffmpeg):
+                ffmpeg_path = potential_ffmpeg
+                logger.debug(f"Found FFmpeg in possible location: {ffmpeg_path}")
+        if ffprobe_path is None:
+            potential_ffprobe = os.path.join(path, ffprobe_filename)
+            if os.path.exists(potential_ffprobe):
+                ffprobe_path = potential_ffprobe
+                logger.debug(f"Found FFprobe in possible location: {ffprobe_path}")
+        if ffmpeg_path and ffprobe_path:
+            break
 
     if ffmpeg_path:
         logger.info(f"Using FFmpeg at: {ffmpeg_path}")
@@ -110,7 +129,6 @@ def get_ffmpeg_paths():
         logger.error("FFprobe not found.")
 
     return ffmpeg_path, ffprobe_path
-
 
 # Helper function to get bits per sample using ffprobe
 def get_bits_per_sample(file_path):

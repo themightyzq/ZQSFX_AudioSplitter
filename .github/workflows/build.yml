@@ -60,6 +60,7 @@ jobs:
         run: |
           pyinstaller --windowed --onedir --name "ZQ SFX Audio Splitter" audio_splitter_gui.py \
           --add-binary "ffmpeg_dir/ffmpeg:Resources/ffmpeg" \
+          --add-binary "ffmpeg_dir/ffprobe:Resources/ffprobe" \
           --hidden-import=tkinter \
           --hidden-import=pydub \
           --hidden-import=numpy \
@@ -72,25 +73,39 @@ jobs:
           --debug=all \
           --osx-bundle-identifier "com.github.themightyzq.ZQSFXAudioSplitter"
       
-      - name: Set Execute Permissions on macOS Executable
-        shell: bash
-        run: |
-          APP_PATH="dist/ZQ SFX Audio Splitter.app/Contents/MacOS/ZQ SFX Audio Splitter"
-          FFMPEG_PATH="dist/ZQ SFX Audio Splitter.app/Contents/Resources/ffmpeg"
-          if [ -f "$APP_PATH" ]; then
-            chmod +x "$APP_PATH"
-            echo "Set execute permissions on $APP_PATH"
-          else
-            echo "Executable not found at $APP_PATH" >&2
-            exit 1
-          fi
-          if [ -f "$FFMPEG_PATH" ]; then
-            chmod +x "$FFMPEG_PATH"
-            echo "Set execute permissions on $FFMPEG_PATH"
-          else
-            echo "FFmpeg not found at $FFMPEG_PATH" >&2
-            exit 1
-          fi
+          - name: Set Execute Permissions on macOS Executable and FFmpeg/FFprobe
+          shell: bash
+          run: |
+            APP_PATH="dist/ZQ SFX Audio Splitter.app/Contents/MacOS/ZQ SFX Audio Splitter"
+            FFMPEG_PATH="dist/ZQ SFX Audio Splitter.app/Contents/Resources/ffmpeg"
+            FFPROBE_PATH="dist/ZQ SFX Audio Splitter.app/Contents/Resources/ffprobe"
+            if [ -f "$APP_PATH" ]; then
+              chmod +x "$APP_PATH"
+              echo "Set execute permissions on $APP_PATH"
+            else
+              echo "Executable not found at $APP_PATH" >&2
+              exit 1
+            fi
+            if [ -f "$FFMPEG_PATH" ]; then
+              chmod +x "$FFMPEG_PATH"
+              echo "Set execute permissions on $FFMPEG_PATH"
+            else
+              echo "FFmpeg not found at $FFMPEG_PATH" >&2
+              exit 1
+            fi
+            if [ -f "$FFPROBE_PATH" ]; then
+              chmod +x "$FFPROBE_PATH"
+              echo "Set execute permissions on $FFPROBE_PATH"
+            else
+              echo "FFprobe not found at $FFPROBE_PATH" >&2
+              exit 1
+            fi
+            
+            - name: List Contents of App Bundle
+            shell: bash
+            run: |
+              echo "Listing contents of the app bundle:"
+              find "dist/ZQ SFX Audio Splitter.app"    
 
       - name: Upload macOS Artifact
         uses: actions/upload-artifact@v3
