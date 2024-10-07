@@ -73,8 +73,8 @@ jobs:
       - name: Build with PyInstaller
         run: |
           pyinstaller --windowed --onedir --name "ZQ SFX Audio Splitter" audio_splitter_gui.py \
-          --add-binary "ffmpeg_dir/ffmpeg:ffmpeg" \
-          --add-binary "ffmpeg_dir/ffprobe:ffprobe" \
+          --add-binary "ffmpeg_dir/ffmpeg:Resources" \
+          --add-binary "ffmpeg_dir/ffprobe:Resources" \
           --hidden-import=tkinter \
           --hidden-import=pydub \
           --hidden-import=numpy \
