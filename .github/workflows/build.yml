@@ -93,6 +93,14 @@ jobs:
           echo "Listing contents of the app bundle:"
           find "dist/ZQ SFX Audio Splitter.app" -print
 
+      - name: Move FFmpeg and FFprobe to Resources
+        shell: bash
+        run: |
+          echo "Moving ffmpeg and ffprobe to Resources..."
+          mv "dist/ZQ SFX Audio Splitter.app/Contents/Frameworks/Resources/ffmpeg" "dist/ZQ SFX Audio Splitter.app/Contents/Resources/"
+          mv "dist/ZQ SFX Audio Splitter.app/Contents/Frameworks/Resources/ffprobe" "dist/ZQ SFX Audio Splitter.app/Contents/Resources/"
+          echo "Moved ffmpeg and ffprobe to Resources."
+
       - name: Set Execute Permissions on macOS Executable and FFmpeg/FFprobe
         shell: bash
         run: |
@@ -127,7 +135,7 @@ jobs:
       - name: Upload macOS Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: AudioSplitter-macos-build
+          name: macos-build
           path: dist/
 
   build-windows:
@@ -212,7 +220,7 @@ jobs:
       - name: Upload Windows Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: AudioSplitter-windows-build
+          name: windows-build
           path: dist/
 
   build-linux:
@@ -252,5 +260,5 @@ jobs:
       - name: Upload Linux Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: AudioSplitter-linux-build
+          name: linux-build
           path: dist/

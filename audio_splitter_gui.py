@@ -226,7 +226,7 @@ def split_audio_files(
     input_dir, output_dir, progress_var, progress_bar, total_files, message_queue, ffprobe_path
 ):
     """
-    Splits audio files into individual mono channels.
+    Splits audio files into individual mono channels!
 
     Args:
         input_dir (str): Directory containing input .wav files.
