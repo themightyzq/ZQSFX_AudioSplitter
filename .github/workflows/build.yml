@@ -90,7 +90,7 @@ jobs:
       - name: List Contents of App Bundle
         shell: bash
         run: |
-          echo "Listing contents of the app bundle:"
+          echo "Listing contents of the app bundle before moving binaries:"
           find "dist/ZQ SFX Audio Splitter.app" -print
 
       - name: Move FFmpeg and FFprobe to Resources
@@ -100,6 +100,12 @@ jobs:
           mv "dist/ZQ SFX Audio Splitter.app/Contents/Frameworks/Resources/ffmpeg" "dist/ZQ SFX Audio Splitter.app/Contents/Resources/"
           mv "dist/ZQ SFX Audio Splitter.app/Contents/Frameworks/Resources/ffprobe" "dist/ZQ SFX Audio Splitter.app/Contents/Resources/"
           echo "Moved ffmpeg and ffprobe to Resources."
+
+      - name: Confirm Move
+        shell: bash
+        run: |
+          echo "Verifying move of ffmpeg and ffprobe to Resources..."
+          ls -la "dist/ZQ SFX Audio Splitter.app/Contents/Resources/"
 
       - name: Set Execute Permissions on macOS Executable and FFmpeg/FFprobe
         shell: bash
@@ -131,6 +137,39 @@ jobs:
             ls -la "dist/ZQ SFX Audio Splitter.app/Contents/Resources"
             exit 1
           fi
+
+      - name: Verify Binary Architectures
+        shell: bash
+        run: |
+          echo "Verifying architectures of ffmpeg and ffprobe..."
+          file "dist/ZQ SFX Audio Splitter.app/Contents/Resources/ffmpeg"
+          file "dist/ZQ SFX Audio Splitter.app/Contents/Resources/ffprobe"
+
+      - name: Confirm Execute Permissions
+        shell: bash
+        run: |
+          echo "Confirming execute permissions on binaries and executable..."
+          ls -la "dist/ZQ SFX Audio Splitter.app/Contents/MacOS/ZQ SFX Audio Splitter"
+          ls -la "dist/ZQ SFX Audio Splitter.app/Contents/Resources/ffmpeg"
+          ls -la "dist/ZQ SFX Audio Splitter.app/Contents/Resources/ffprobe"
+
+      - name: Final App Bundle Verification
+        shell: bash
+        run: |
+          echo "Final App Bundle Structure:"
+          find "dist/ZQ SFX Audio Splitter.app" -print
+
+      - name: Check Executable Dependencies
+        shell: bash
+        run: |
+          echo "Checking dependencies of the main executable..."
+          otool -L "dist/ZQ SFX Audio Splitter.app/Contents/MacOS/ZQ SFX Audio Splitter"
+
+      # Optional: Code Signing (Requires proper setup and certificates)
+      # - name: Code Sign App Bundle
+      #   if: success()
+      #   run: |
+      #     codesign --deep --force --verify --verbose --sign "Developer ID Application: Your Name (Team ID)" "dist/ZQ SFX Audio Splitter.app"
 
       - name: Upload macOS Artifact
         uses: actions/upload-artifact@v3
