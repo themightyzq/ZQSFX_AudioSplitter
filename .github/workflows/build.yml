@@ -76,7 +76,7 @@ jobs:
         shell: bash
         run: |
           APP_PATH="dist/ZQ SFX Audio Splitter.app/Contents/MacOS/ZQ SFX Audio Splitter"
-          FFMPEG_PATH="dist/ZQ SFX Audio Splitter.app/Contents/MacOS/ffmpeg"
+          FFMPEG_PATH="dist/ZQ SFX Audio Splitter.app/Contents/MacOS/frameworks/ffmpeg"
           if [ -f "$APP_PATH" ]; then
             chmod +x "$APP_PATH"
             echo "Set execute permissions on $APP_PATH"
