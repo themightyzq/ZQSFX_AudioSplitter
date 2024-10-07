@@ -25,24 +25,25 @@ jobs:
       - name: Clean Previous Builds
         run: |
           rm -rf dist/ build/ __pycache__/ *.spec
-          rm -rf ffmpeg ffmpeg.zip  # Remove existing FFmpeg files
+          rm -rf ffmpeg_dir ffmpeg.zip ffprobe.zip  # Remove existing FFmpeg files
 
-      - name: Download FFmpeg
+      - name: Download FFmpeg and FFprobe
         shell: bash
         run: |
           echo "Downloading FFmpeg..."
           curl -L -o ffmpeg.zip https://evermeet.cx/ffmpeg/ffmpeg-6.0.zip
+          echo "Downloading FFprobe..."
+          curl -L -o ffprobe.zip https://evermeet.cx/ffmpeg/ffprobe-6.0.zip
           echo "Extracting FFmpeg..."
-          unzip -o ffmpeg.zip  # Use -o to overwrite without prompting
-          echo "Creating directory for FFmpeg binary..."
-          mkdir -p ffmpeg_dir
-          echo "Moving FFmpeg binary..."
-          mv ffmpeg ffmpeg_dir/ffmpeg
+          unzip -o ffmpeg.zip -d ffmpeg_dir  # Extract into ffmpeg_dir
+          echo "Extracting FFprobe..."
+          unzip -o ffprobe.zip -d ffmpeg_dir  # Extract into ffmpeg_dir
           echo "Cleaning up..."
-          rm -rf ffmpeg.zip
-          echo "FFmpeg binary downloaded and moved successfully."
+          rm -rf ffmpeg.zip ffprobe.zip
+          echo "FFmpeg and FFprobe binaries downloaded and moved successfully."
+        
 
-      - name: Verify FFmpeg Binary
+      - name: Verify FFmpeg and FFprobe Binaries
         shell: bash
         run: |
           if [ -f "ffmpeg_dir/ffmpeg" ]; then
@@ -52,9 +53,18 @@ jobs:
             echo "ffmpeg is missing." >&2
             exit 1
           fi
-
-          echo "Contents of ffmpeg directory:"
+      
+          if [ -f "ffmpeg_dir/ffprobe" ]; then
+            echo "ffprobe is present."
+            chmod +x ffmpeg_dir/ffprobe
+          else
+            echo "ffprobe is missing." >&2
+            exit 1
+          fi
+      
+          echo "Contents of ffmpeg_dir:"
           ls -la ffmpeg_dir
+      
 
       - name: Build with PyInstaller
         run: |
@@ -73,9 +83,9 @@ jobs:
           --debug=all \
           --osx-bundle-identifier "com.github.themightyzq.ZQSFXAudioSplitter"
       
-          - name: Set Execute Permissions on macOS Executable and FFmpeg/FFprobe
-          shell: bash
-          run: |
+      - name: Set Execute Permissions on macOS Executable and FFmpeg/FFprobe
+        shell: bash
+        run: |
             APP_PATH="dist/ZQ SFX Audio Splitter.app/Contents/MacOS/ZQ SFX Audio Splitter"
             FFMPEG_PATH="dist/ZQ SFX Audio Splitter.app/Contents/Resources/ffmpeg"
             FFPROBE_PATH="dist/ZQ SFX Audio Splitter.app/Contents/Resources/ffprobe"
@@ -101,9 +111,9 @@ jobs:
               exit 1
             fi
             
-            - name: List Contents of App Bundle
-            shell: bash
-            run: |
+      - name: List Contents of App Bundle
+        shell: bash
+        run: |
               echo "Listing contents of the app bundle:"
               find "dist/ZQ SFX Audio Splitter.app"    
 
