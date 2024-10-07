@@ -12,14 +12,18 @@ from pydub import AudioSegment
 from pydub.utils import which  # Ensure this import is present
 import subprocess  # To run ffprobe
 import json  # For configuration persistence
-from shutil import which
 
 # Function to get the root directory of the application
 def get_application_root():
+    """
+    Determines the root directory of the application based on the environment.
+    - When frozen (bundled by PyInstaller), it points to the appropriate Resources directory.
+    - When running in a development environment, it points to the script's directory.
+    """
     if getattr(sys, 'frozen', False):
         if sys.platform == 'darwin':
-            # For macOS app bundle, FFmpeg and FFprobe are in Contents/Resources/bin/
-            app_root = os.path.join(os.path.dirname(sys.executable), '..', 'Resources', 'bin')
+            # For macOS app bundle, FFmpeg and FFprobe are in Contents/Resources/
+            app_root = os.path.join(os.path.dirname(sys.executable), '..', 'Resources')
             app_root = os.path.abspath(app_root)
         else:
             # For Windows and Linux
@@ -31,6 +35,11 @@ def get_application_root():
 
 # Configure logging to write to a file inside the application root and to the console
 def setup_logging():
+    """
+    Sets up logging for the application.
+    - Logs are written to both a file (app.log) and the console.
+    - If logging to a file fails, it defaults to console logging only.
+    """
     try:
         log_file_path = os.path.join(get_application_root(), "app.log")
         logging.basicConfig(
@@ -50,7 +59,6 @@ def setup_logging():
         )
         logging.error(f"Failed to set up logging to file: {e}")
 
-
 setup_logging()
 logger = logging.getLogger(__name__)
 
@@ -58,9 +66,14 @@ logger = logging.getLogger(__name__)
 last_input_dir = os.path.expanduser("~")
 last_output_dir = os.path.expanduser("~")
 
-
 # Function to get the paths to FFmpeg and FFprobe
 def get_ffmpeg_paths():
+    """
+    Determines the paths to the FFmpeg and FFprobe binaries.
+    - Checks if the binaries exist within the app bundle's Resources directory.
+    - Falls back to system-installed binaries if not found.
+    - Exits the application if binaries are not found in either location.
+    """
     app_root = get_application_root()
 
     if os.name == "nt":
@@ -99,13 +112,20 @@ def get_ffmpeg_paths():
     return ffmpeg_path, ffprobe_path
 
 # Helper function to get bits per sample using ffprobe
-def get_bits_per_sample(file_path):
+def get_bits_per_sample(file_path, ffprobe_path):
     """
-    Use ffprobe to get the bits per sample of the audio file.
+    Uses ffprobe to retrieve the bits per sample of the given audio file.
+    
+    Args:
+        file_path (str): Path to the audio file.
+        ffprobe_path (str): Path to the ffprobe binary.
+    
+    Returns:
+        int or None: Bits per sample if successful, else None.
     """
     try:
         cmd = [
-            AudioSegment.ffprobe,
+            ffprobe_path,
             "-v",
             "error",
             "-select_streams",
@@ -130,11 +150,16 @@ def get_bits_per_sample(file_path):
         logger.debug(traceback.format_exc())
         return None
 
-
 # Helper function to map bits_per_sample to sample_fmt
 def get_sample_fmt(bits_per_sample):
     """
-    Map bits_per_sample to FFmpeg's sample_fmt.
+    Maps bits_per_sample to FFmpeg's sample_fmt.
+    
+    Args:
+        bits_per_sample (int): Number of bits per sample.
+    
+    Returns:
+        str or None: Corresponding sample_fmt string if supported, else None.
     """
     mapping = {
         8: "s8",
@@ -151,15 +176,21 @@ def get_sample_fmt(bits_per_sample):
         )
     return sample_fmt
 
-
 # Function to extract metadata using ffprobe
-def get_metadata(file_path):
+def get_metadata(file_path, ffprobe_path):
     """
-    Extract all metadata from the audio file using ffprobe.
+    Extracts all metadata from the audio file using ffprobe.
+    
+    Args:
+        file_path (str): Path to the audio file.
+        ffprobe_path (str): Path to the ffprobe binary.
+    
+    Returns:
+        dict: Extracted metadata.
     """
     try:
         cmd = [
-            AudioSegment.ffprobe,
+            ffprobe_path,
             "-v",
             "quiet",
             "-print_format",
@@ -181,13 +212,9 @@ def get_metadata(file_path):
         logger.debug(traceback.format_exc())
         return {}
 
-
 # Set the FFmpeg and FFprobe paths for pydub
 ffmpeg_path, ffprobe_path = get_ffmpeg_paths()
 if ffmpeg_path is None or ffprobe_path is None:
-    # Instead of showing a message box here, enqueue the message
-    # Assuming message_queue is initialized later, this needs to be handled
-    # For simplicity, we'll log and exit
     logger.critical("FFmpeg and/or FFprobe not found. Exiting application.")
     sys.exit(1)
 else:
@@ -195,10 +222,21 @@ else:
     AudioSegment.ffprobe = ffprobe_path
     logger.info(f"FFmpeg and FFprobe paths set successfully.")
 
-
 def split_audio_files(
-    input_dir, output_dir, progress_var, progress_bar, total_files, message_queue
+    input_dir, output_dir, progress_var, progress_bar, total_files, message_queue, ffprobe_path
 ):
+    """
+    Splits audio files into individual mono channels.
+
+    Args:
+        input_dir (str): Directory containing input .wav files.
+        output_dir (str): Directory to save split audio files.
+        progress_var (IntVar): Tkinter IntVar for progress tracking.
+        progress_bar (ttk.Progressbar): Tkinter Progressbar widget.
+        total_files (int): Total number of files to process.
+        message_queue (queue.Queue): Queue for inter-thread communication.
+        ffprobe_path (str): Path to the ffprobe binary.
+    """
     logger.debug("Starting split_audio_files function.")
     try:
         # Re-confirm FFmpeg availability inside the function (optional but safe)
@@ -257,10 +295,10 @@ def split_audio_files(
                 continue
 
             # Extract metadata using ffprobe
-            metadata = get_metadata(input_file)
+            metadata = get_metadata(input_file, ffprobe_path)
 
             # Extract original audio properties using FFprobe
-            bits_per_sample = get_bits_per_sample(input_file)
+            bits_per_sample = get_bits_per_sample(input_file, ffprobe_path)
             if bits_per_sample is None:
                 message_queue.put(
                     ("error", "Error", f"Could not determine bit depth of '{wav_file}'")
@@ -336,7 +374,7 @@ def split_audio_files(
                     channel.export(
                         output_file,
                         format="wav",
-                        parameters=["-c:a", codec],  # Removed "-sample_fmt", "s24"
+                        parameters=["-c:a", codec],
                     )
                     logger.info(f"Exported: {output_file}")
                 except Exception as e:
@@ -365,8 +403,13 @@ def split_audio_files(
         logger.debug(traceback.format_exc())
         message_queue.put(("error", "Error", f"An unexpected error occurred:\n{e}"))
 
-
 def browse_input_dir(message_queue):
+    """
+    Opens a dialog for the user to select the input directory.
+    
+    Args:
+        message_queue (queue.Queue): Queue for inter-thread communication.
+    """
     global last_input_dir, last_output_dir  # Declare both as global
     try:
         directory = filedialog.askdirectory(initialdir=last_input_dir)
@@ -374,16 +417,19 @@ def browse_input_dir(message_queue):
             input_dir_var.set(directory)
             logger.debug(f"Selected input directory: {directory}")
             last_input_dir = directory
-            last_output_dir = (
-                directory  # Update output initialdir to the selected input directory
-            )
+            last_output_dir = directory  # Update output initialdir to the selected input directory
     except Exception as e:
         logger.error(f"Error selecting input directory: {e}")
         logger.debug(traceback.format_exc())
         message_queue.put(("error", "Error", f"Error selecting input directory: {e}"))
 
-
 def browse_output_dir(message_queue):
+    """
+    Opens a dialog for the user to select the output directory.
+    
+    Args:
+        message_queue (queue.Queue): Queue for inter-thread communication.
+    """
     global last_output_dir, last_input_dir  # Declare both as global
     try:
         directory = filedialog.askdirectory(initialdir=last_output_dir)
@@ -391,16 +437,19 @@ def browse_output_dir(message_queue):
             output_dir_var.set(directory)
             logger.debug(f"Selected output directory: {directory}")
             last_output_dir = directory
-            last_input_dir = (
-                directory  # Update input initialdir to the selected output directory
-            )
+            last_input_dir = directory  # Update input initialdir to the selected output directory
     except Exception as e:
         logger.error(f"Error selecting output directory: {e}")
         logger.debug(traceback.format_exc())
         message_queue.put(("error", "Error", f"Error selecting output directory: {e}"))
 
-
 def run_splitter(message_queue):
+    """
+    Initiates the audio splitting process.
+    
+    Args:
+        message_queue (queue.Queue): Queue for inter-thread communication.
+    """
     logger.debug("run_splitter function called.")
     try:
         input_dir = input_dir_var.get()
@@ -417,10 +466,18 @@ def run_splitter(message_queue):
         # Disable the split button to prevent multiple clicks
         split_button.config(state="disabled")
 
+        # Get list of .wav files to determine progress
+        wav_files = [
+            f
+            for f in os.listdir(input_dir)
+            if os.path.isfile(os.path.join(input_dir, f)) and f.lower().endswith(".wav")
+        ]
+        total_files = len(wav_files) if wav_files else 1  # Prevent division by zero
+
         # Start the split process in a separate thread
         threading.Thread(
-            target=split_audio_files_thread,
-            args=(input_dir, output_dir, message_queue),
+            target=split_audio_files,
+            args=(input_dir, output_dir, progress_var, progress_bar, total_files, message_queue, ffprobe_path),
             daemon=True,
         ).start()
     except Exception as e:
@@ -428,8 +485,13 @@ def run_splitter(message_queue):
         logger.debug(traceback.format_exc())
         message_queue.put(("error", "Error", f"An unexpected error occurred:\n{e}"))
 
-
 def open_output_directory(output_dir):
+    """
+    Opens the output directory in the system's file explorer.
+    
+    Args:
+        output_dir (str): Path to the output directory.
+    """
     try:
         if os.name == "nt":  # For Windows
             os.startfile(output_dir)
@@ -443,59 +505,16 @@ def open_output_directory(output_dir):
         logger.debug(traceback.format_exc())
         messagebox.showerror("Error", f"Failed to open output directory:\n{e}")
 
-
-def split_audio_files_thread(input_dir, output_dir, message_queue):
-    try:
-        total_files = (
-            len(
-                [
-                    f
-                    for f in os.listdir(input_dir)
-                    if os.path.isfile(os.path.join(input_dir, f))
-                    and f.lower().endswith(".wav")
-                ]
-            )
-            * 6
-        )  # Assuming 6 channels as per your log
-        if total_files == 0:
-            total_files = 1  # Prevent division by zero
-
-        # Update progress bar settings
-        progress_var.set(0)
-        progress_bar["value"] = 0
-        progress_bar["maximum"] = 100
-
-        # Start splitting files
-        split_audio_files(
-            input_dir,
-            output_dir,
-            progress_var,
-            progress_bar,
-            total_files,
-            message_queue,
-        )
-
-        # Enqueue success message
-        message_queue.put(
-            ("info", "Success", "Audio files have been successfully split.")
-        )
-
-    except Exception as e:
-        logger.error(f"Error in split_audio_files_thread: {e}")
-        logger.debug(traceback.format_exc())
-        message_queue.put(("error", "Error", f"An unexpected error occurred:\n{e}"))
-    finally:
-        split_button.config(state="normal")
-
-
 def main():
+    """
+    Sets up the GUI and initiates the application's main loop.
+    """
     try:
         # Load configuration
         load_config()
 
         # Initialize last used directories to the loaded configuration
         global last_input_dir, last_output_dir
-        # ... existing GUI setup code ...
 
         # Create the main window
         root = Tk()
@@ -590,12 +609,13 @@ def main():
         messagebox.showerror("Error", f"An unexpected error occurred:\n{e}")
         sys.exit(1)
 
-
 # Configuration persistence functions
 CONFIG_FILE = os.path.join(get_application_root(), "config.json")
 
-
 def load_config():
+    """
+    Loads the last used input and output directories from the configuration file.
+    """
     global last_input_dir, last_output_dir
     if os.path.exists(CONFIG_FILE):
         try:
@@ -608,8 +628,10 @@ def load_config():
             logger.error(f"Error loading config: {e}")
             logger.debug(traceback.format_exc())
 
-
 def save_config():
+    """
+    Saves the last used input and output directories to the configuration file.
+    """
     config = {"last_input_dir": last_input_dir, "last_output_dir": last_output_dir}
     try:
         with open(CONFIG_FILE, "w") as f:
@@ -619,12 +641,17 @@ def save_config():
         logger.error(f"Error saving config: {e}")
         logger.debug(traceback.format_exc())
 
-
 # Modify the main function to save config on exit
 def on_closing(root, message_queue):
+    """
+    Handles the window close event by saving the configuration and closing the app.
+    
+    Args:
+        root (Tk): The main Tkinter window.
+        message_queue (queue.Queue): Queue for inter-thread communication.
+    """
     save_config()
     root.destroy()
-
 
 if __name__ == "__main__":
     main()
