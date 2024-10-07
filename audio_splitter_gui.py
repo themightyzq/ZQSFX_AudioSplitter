@@ -33,7 +33,17 @@ def get_application_root():
         app_root = os.path.dirname(os.path.abspath(__file__))
     return app_root
 
-# Configure logging to write to a file inside the application root and to the console
+# Function to get the log file path
+def get_log_file_path():
+    """
+    Returns the path to the log file located in the user's Library/Logs directory.
+    """
+    home = os.path.expanduser("~")
+    log_dir = os.path.join(home, "Library", "Logs", "ZQSFXAudioSplitter")
+    os.makedirs(log_dir, exist_ok=True)
+    return os.path.join(log_dir, "app.log")
+
+# Configure logging to write to a file inside the user's Library/Logs directory and to the console
 def setup_logging():
     """
     Sets up logging for the application.
@@ -41,7 +51,7 @@ def setup_logging():
     - If logging to a file fails, it defaults to console logging only.
     """
     try:
-        log_file_path = os.path.join(get_application_root(), "app.log")
+        log_file_path = get_log_file_path()
         logging.basicConfig(
             level=logging.DEBUG,  # Set to DEBUG to capture all levels
             format="%(asctime)s - %(levelname)s - %(message)s",
@@ -226,7 +236,7 @@ def split_audio_files(
     input_dir, output_dir, progress_var, progress_bar, total_files, message_queue, ffprobe_path
 ):
     """
-    Splits audio files into individual mono channels!
+    Splits audio files into individual mono channels.
 
     Args:
         input_dir (str): Directory containing input .wav files.
@@ -417,7 +427,8 @@ def browse_input_dir(message_queue):
             input_dir_var.set(directory)
             logger.debug(f"Selected input directory: {directory}")
             last_input_dir = directory
-            last_output_dir = directory  # Update output initialdir to the selected input directory
+            # Optionally, retain the output directory independently
+            # last_output_dir = last_output_dir
     except Exception as e:
         logger.error(f"Error selecting input directory: {e}")
         logger.debug(traceback.format_exc())
@@ -437,7 +448,8 @@ def browse_output_dir(message_queue):
             output_dir_var.set(directory)
             logger.debug(f"Selected output directory: {directory}")
             last_output_dir = directory
-            last_input_dir = directory  # Update input initialdir to the selected output directory
+            # Optionally, retain the input directory independently
+            # last_input_dir = last_input_dir
     except Exception as e:
         logger.error(f"Error selecting output directory: {e}")
         logger.debug(traceback.format_exc())
@@ -599,6 +611,9 @@ def main():
         # Start processing the queue
         root.after(100, process_queue)
 
+        # Log application startup
+        logger.info("ZQ SFX Audio Splitter application started.")
+
         # Start the GUI event loop
         logger.debug("Starting the Tkinter main loop.")
         root.mainloop()
@@ -644,13 +659,14 @@ def save_config():
 # Modify the main function to save config on exit
 def on_closing(root, message_queue):
     """
-    Handles the window close event by saving the configuration and closing the app!
+    Handles the window close event by saving the configuration and closing the app.
     
     Args:
         root (Tk): The main Tkinter window.
         message_queue (queue.Queue): Queue for inter-thread communication.
     """
     save_config()
+    logger.info("Configuration saved. Exiting application.")
     root.destroy()
 
 if __name__ == "__main__":
