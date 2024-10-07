@@ -59,7 +59,7 @@ jobs:
       - name: Build with PyInstaller
         run: |
           pyinstaller --windowed --onedir --name "ZQ SFX Audio Splitter" audio_splitter_gui.py \
-          --add-binary "ffmpeg_dir/ffmpeg:ffmpeg" \
+          --add-binary "ffmpeg_dir/ffmpeg:./ffmpeg"\
           --hidden-import=tkinter \
           --hidden-import=pydub \
           --hidden-import=numpy \
@@ -71,16 +71,24 @@ jobs:
           --log-level=DEBUG \
           --debug=all \
           --osx-bundle-identifier "com.github.themightyzq.ZQSFXAudioSplitter"
-
+      
       - name: Set Execute Permissions on macOS Executable
         shell: bash
         run: |
           APP_PATH="dist/ZQ SFX Audio Splitter.app/Contents/MacOS/ZQ SFX Audio Splitter"
+          FFMPEG_PATH="dist/ZQ SFX Audio Splitter.app/Contents/MacOS/ffmpeg"
           if [ -f "$APP_PATH" ]; then
             chmod +x "$APP_PATH"
             echo "Set execute permissions on $APP_PATH"
           else
             echo "Executable not found at $APP_PATH" >&2
+            exit 1
+          fi
+          if [ -f "$FFMPEG_PATH" ]; then
+            chmod +x "$FFMPEG_PATH"
+            echo "Set execute permissions on $FFMPEG_PATH"
+          else
+            echo "FFmpeg not found at $FFMPEG_PATH" >&2
             exit 1
           fi
 
