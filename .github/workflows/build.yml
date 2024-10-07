@@ -41,22 +41,21 @@ jobs:
           echo "Cleaning up..."
           rm -rf ffmpeg.zip ffprobe.zip
           echo "FFmpeg and FFprobe binaries downloaded and moved successfully."
-        
 
       - name: Verify FFmpeg and FFprobe Binaries
         shell: bash
         run: |
-          if [ -f "ffmpeg_dir/ffmpeg" ]; then
+          if [ -f "ffmpeg_dir" ]; then
             echo "ffmpeg is present."
-            chmod +x ffmpeg_dir/ffmpeg
+            chmod +x ffmpeg_dir
           else
             echo "ffmpeg is missing." >&2
             exit 1
           fi
       
-          if [ -f "ffmpeg_dir/ffprobe" ]; then
+          if [ -f "ffmpeg_dir" ]; then
             echo "ffprobe is present."
-            chmod +x ffmpeg_dir/ffprobe
+            chmod +x ffmpeg_dir
           else
             echo "ffprobe is missing." >&2
             exit 1
@@ -64,7 +63,6 @@ jobs:
       
           echo "Contents of ffmpeg_dir:"
           ls -la ffmpeg_dir
-      
 
       - name: Build with PyInstaller
         run: |
