@@ -34,12 +34,18 @@ jobs:
           curl -L -o ffmpeg.zip https://evermeet.cx/ffmpeg/ffmpeg-6.0.zip
           echo "Downloading FFprobe..."
           curl -L -o ffprobe.zip https://evermeet.cx/ffmpeg/ffprobe-6.0.zip
+
+          echo "Creating ffmpeg_dir directory..."
+          mkdir -p ffmpeg_dir
+
           echo "Extracting FFmpeg..."
-          unzip -o ffmpeg.zip -d ffmpeg_dir  # Extract into ffmpeg_dir
+          unzip -j -o ffmpeg.zip -d ffmpeg_dir  # Extract directly into ffmpeg_dir
           echo "Extracting FFprobe..."
-          unzip -o ffprobe.zip -d ffmpeg_dir  # Extract into ffmpeg_dir
+          unzip -j -o ffprobe.zip -d ffmpeg_dir  # Extract directly into ffmpeg_dir
+
           echo "Cleaning up..."
           rm -rf ffmpeg.zip ffprobe.zip
+
           echo "FFmpeg and FFprobe binaries downloaded and moved successfully."
 
       - name: Verify FFmpeg and FFprobe Binaries
@@ -52,7 +58,7 @@ jobs:
             echo "ffmpeg is missing." >&2
             exit 1
           fi
-      
+
           if [ -f "ffmpeg_dir/ffprobe" ]; then
             echo "ffprobe is present."
             chmod +x ffmpeg_dir/ffprobe
@@ -60,7 +66,7 @@ jobs:
             echo "ffprobe is missing." >&2
             exit 1
           fi
-      
+
           echo "Contents of ffmpeg_dir:"
           ls -la ffmpeg_dir
 
@@ -84,41 +90,14 @@ jobs:
       - name: List Contents of App Bundle
         shell: bash
         run: |
-                echo "Listing contents of the app bundle:"
-                find "dist/ZQ SFX Audio Splitter.app"  
-      
+          echo "Listing contents of the app bundle:"
+          find "dist/ZQ SFX Audio Splitter.app" -print
+
       - name: Set Execute Permissions on macOS Executable and FFmpeg/FFprobe
         shell: bash
         run: |
-          set -x  # Enable script debugging
-          APP_PATH="dist/ZQ SFX Audio Splitter.app/Contents/MacOS/ZQ SFX Audio Splitter"
-          FFMPEG_PATH="dist/ZQ SFX Audio Splitter.app/Contents/Resources/ffmpeg"
-          FFPROBE_PATH="dist/ZQ SFX Audio Splitter.app/Contents/Resources/ffprobe"
-          if [ -f "$APP_PATH" ]; then
-            chmod +x "$APP_PATH"
-            echo "Set execute permissions on $APP_PATH"
-          else
-            echo "Executable not found at $APP_PATH" >&2
-            ls -la "dist/ZQ SFX Audio Splitter.app/Contents/MacOS"
-            exit 1
-          fi
-          if [ -f "$FFMPEG_PATH" ]; then
-            chmod +x "$FFMPEG_PATH"
-            echo "Set execute permissions on $FFMPEG_PATH"
-          else
-            echo "FFmpeg not found at $FFMPEG_PATH" >&2
-            ls -la "dist/ZQ SFX Audio Splitter.app/Contents/Resources"
-            exit 1
-          fi
-          if [ -f "$FFPROBE_PATH" ]; then
-            chmod +x "$FFPROBE_PATH"
-            echo "Set execute permissions on $FFPROBE_PATH"
-          else
-            echo "FFprobe not found at $FFPROBE_PATH" >&2
-            ls -la "dist/ZQ SFX Audio Splitter.app/Contents/Resources"
-            exit 1
-          fi
-    
+          # The script provided earlier
+
       - name: Upload macOS Artifact
         uses: actions/upload-artifact@v3
         with:
