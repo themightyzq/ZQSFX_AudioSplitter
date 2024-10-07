@@ -12,15 +12,15 @@ from pydub import AudioSegment
 from pydub.utils import which  # Ensure this import is present
 import subprocess  # To run ffprobe
 import json  # For configuration persistence
-
+from shutil import which
 
 # Function to get the root directory of the application
 def get_application_root():
     if getattr(sys, 'frozen', False):
         if sys.platform == 'darwin':
-            # For macOS app bundle
-            bundle_dir = os.path.dirname(sys.executable)
-            app_root = os.path.abspath(os.path.join(bundle_dir, '..', 'Resources'))
+            # For macOS app bundle, FFmpeg and FFprobe are in Contents/Resources/bin/
+            app_root = os.path.join(os.path.dirname(sys.executable), '..', 'Resources', 'bin')
+            app_root = os.path.abspath(app_root)
         else:
             # For Windows and Linux
             app_root = sys._MEIPASS
@@ -61,9 +61,6 @@ last_output_dir = os.path.expanduser("~")
 
 # Function to get the paths to FFmpeg and FFprobe
 def get_ffmpeg_paths():
-    """
-    Attempt to locate the FFmpeg and FFprobe executables in the application directory or common installation paths.
-    """
     app_root = get_application_root()
 
     if os.name == "nt":
@@ -73,60 +70,31 @@ def get_ffmpeg_paths():
         ffmpeg_filename = "ffmpeg"
         ffprobe_filename = "ffprobe"
 
-    # Paths to ffmpeg and ffprobe in the bundled app or source directory
-    ffmpeg_in_app = os.path.join(app_root, ffmpeg_filename)
-    ffprobe_in_app = os.path.join(app_root, ffprobe_filename)
+    # Paths to ffmpeg and ffprobe in the bundled app
+    ffmpeg_path = os.path.join(app_root, ffmpeg_filename)
+    ffprobe_path = os.path.join(app_root, ffprobe_filename)
 
-    ffmpeg_path = None
-    ffprobe_path = None
-
-    if os.path.exists(ffmpeg_in_app):
-        ffmpeg_path = ffmpeg_in_app
-        logger.debug(f"Found FFmpeg in app directory: {ffmpeg_path}")
-    if os.path.exists(ffprobe_in_app):
-        ffprobe_path = ffprobe_in_app
-        logger.debug(f"Found FFprobe in app directory: {ffprobe_path}")
-
-    # If not found, try to find ffmpeg and ffprobe in the system PATH
-    if ffmpeg_path is None:
-        ffmpeg_path = which("ffmpeg")
-        if ffmpeg_path:
-            logger.debug(f"Found FFmpeg in system PATH: {ffmpeg_path}")
-    if ffprobe_path is None:
-        ffprobe_path = which("ffprobe")
-        if ffprobe_path:
-            logger.debug(f"Found FFprobe in system PATH: {ffprobe_path}")
-
-    # If still not found, check common installation directories
-    possible_locations = [
-        "/usr/local/bin",          # Common path on macOS
-        "/opt/homebrew/bin",       # Homebrew on Apple Silicon Macs
-        "/usr/bin",                # Common Linux path
-        "/usr/local/ffmpeg/bin",   # Alternative location
-    ]
-    for path in possible_locations:
-        if ffmpeg_path is None:
-            potential_ffmpeg = os.path.join(path, ffmpeg_filename)
-            if os.path.exists(potential_ffmpeg):
-                ffmpeg_path = potential_ffmpeg
-                logger.debug(f"Found FFmpeg in possible location: {ffmpeg_path}")
-        if ffprobe_path is None:
-            potential_ffprobe = os.path.join(path, ffprobe_filename)
-            if os.path.exists(potential_ffprobe):
-                ffprobe_path = potential_ffprobe
-                logger.debug(f"Found FFprobe in possible location: {ffprobe_path}")
-        if ffmpeg_path and ffprobe_path:
-            break
-
-    if ffmpeg_path:
+    if os.path.exists(ffmpeg_path):
         logger.info(f"Using FFmpeg at: {ffmpeg_path}")
     else:
-        logger.error("FFmpeg not found.")
+        logger.error("FFmpeg not found in the app bundle.")
+        ffmpeg_path = which("ffmpeg")  # Fallback to system PATH
+        if ffmpeg_path:
+            logger.info(f"Using system FFmpeg at: {ffmpeg_path}")
+        else:
+            logger.critical("FFmpeg not found. The application will exit.")
+            sys.exit(1)
 
-    if ffprobe_path:
+    if os.path.exists(ffprobe_path):
         logger.info(f"Using FFprobe at: {ffprobe_path}")
     else:
-        logger.error("FFprobe not found.")
+        logger.error("FFprobe not found in the app bundle.")
+        ffprobe_path = which("ffprobe")  # Fallback to system PATH
+        if ffprobe_path:
+            logger.info(f"Using system FFprobe at: {ffprobe_path}")
+        else:
+            logger.critical("FFprobe not found. The application will exit.")
+            sys.exit(1)
 
     return ffmpeg_path, ffprobe_path
 
