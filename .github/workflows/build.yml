@@ -24,7 +24,7 @@ jobs:
 
       - name: Clean Previous Builds
         run: |
-          rm -rf dist/ build/ __pycache__/ *.spec
+          rm -rf build/ __pycache__/ *.spec
           rm -rf ffmpeg_dir ffmpeg.zip ffprobe.zip  # Remove existing FFmpeg files
 
       - name: Download FFmpeg and FFprobe
@@ -72,7 +72,7 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          pyinstaller --windowed --onedir --distpath "dist/" --name "ZQ SFX Audio Splitter" audio_splitter_gui.py \
+          pyinstaller --windowed --onedir --distpath "./" --name "ZQ SFX Audio Splitter" audio_splitter_gui.py \
           --add-binary "ffmpeg_dir/ffmpeg:Resources" \
           --add-binary "ffmpeg_dir/ffprobe:Resources" \
           --hidden-import=tkinter \
@@ -91,34 +91,34 @@ jobs:
         shell: bash
         run: |
           echo "Listing contents of the app bundle before moving binaries:"
-          find "dist/ZQ SFX Audio Splitter.app" -print
+          find "ZQ SFX Audio Splitter.app" -print
 
       - name: Move FFmpeg and FFprobe to Resources
         shell: bash
         run: |
           echo "Moving ffmpeg and ffprobe to Resources..."
-          mv "dist/ZQ SFX Audio Splitter.app/Contents/Frameworks/Resources/ffmpeg" "dist/ZQ SFX Audio Splitter.app/Contents/Resources/"
-          mv "dist/ZQ SFX Audio Splitter.app/Contents/Frameworks/Resources/ffprobe" "dist/ZQ SFX Audio Splitter.app/Contents/Resources/"
+          mv "ZQ SFX Audio Splitter.app/Contents/Frameworks/Resources/ffmpeg" "ZQ SFX Audio Splitter.app/Contents/Resources/"
+          mv "ZQ SFX Audio Splitter.app/Contents/Frameworks/Resources/ffprobe" "ZQ SFX Audio Splitter.app/Contents/Resources/"
           echo "Moved ffmpeg and ffprobe to Resources."
 
       - name: Confirm Move
         shell: bash
         run: |
           echo "Verifying move of ffmpeg and ffprobe to Resources..."
-          ls -la "dist/ZQ SFX Audio Splitter.app/Contents/Resources/"
+          ls -la "ZQ SFX Audio Splitter.app/Contents/Resources/"
 
       - name: Set Execute Permissions on macOS Executable and FFmpeg/FFprobe
         shell: bash
         run: |
-          APP_PATH="dist/ZQ SFX Audio Splitter.app/Contents/MacOS/ZQ SFX Audio Splitter"
-          FFMPEG_PATH="dist/ZQ SFX Audio Splitter.app/Contents/Resources/ffmpeg"
-          FFPROBE_PATH="dist/ZQ SFX Audio Splitter.app/Contents/Resources/ffprobe"
+          APP_PATH="ZQ SFX Audio Splitter.app/Contents/MacOS/ZQ SFX Audio Splitter"
+          FFMPEG_PATH="ZQ SFX Audio Splitter.app/Contents/Resources/ffmpeg"
+          FFPROBE_PATH="ZQ SFX Audio Splitter.app/Contents/Resources/ffprobe"
           if [ -f "$APP_PATH" ]; then
             chmod +x "$APP_PATH"
             echo "Set execute permissions on $APP_PATH"
           else
             echo "Executable not found at $APP_PATH" >&2
-            ls -la "dist/ZQ SFX Audio Splitter.app/Contents/MacOS"
+            ls -la "ZQ SFX Audio Splitter.app/Contents/MacOS"
             exit 1
           fi
           if [ -f "$FFMPEG_PATH" ]; then
@@ -126,7 +126,7 @@ jobs:
             echo "Set execute permissions on $FFMPEG_PATH"
           else
             echo "FFmpeg not found at $FFMPEG_PATH" >&2
-            ls -la "dist/ZQ SFX Audio Splitter.app/Contents/Resources"
+            ls -la "ZQ SFX Audio Splitter.app/Contents/Resources"
             exit 1
           fi
           if [ -f "$FFPROBE_PATH" ]; then
@@ -134,7 +134,7 @@ jobs:
             echo "Set execute permissions on $FFPROBE_PATH"
           else
             echo "FFprobe not found at $FFPROBE_PATH" >&2
-            ls -la "dist/ZQ SFX Audio Splitter.app/Contents/Resources"
+            ls -la "ZQ SFX Audio Splitter.app/Contents/Resources"
             exit 1
           fi
 
@@ -142,40 +142,40 @@ jobs:
         shell: bash
         run: |
           echo "Verifying architectures of ffmpeg and ffprobe..."
-          file "dist/ZQ SFX Audio Splitter.app/Contents/Resources/ffmpeg"
-          file "dist/ZQ SFX Audio Splitter.app/Contents/Resources/ffprobe"
+          file "ZQ SFX Audio Splitter.app/Contents/Resources/ffmpeg"
+          file "ZQ SFX Audio Splitter.app/Contents/Resources/ffprobe"
 
       - name: Confirm Execute Permissions
         shell: bash
         run: |
           echo "Confirming execute permissions on binaries and executable..."
-          ls -la "dist/ZQ SFX Audio Splitter.app/Contents/MacOS/ZQ SFX Audio Splitter"
-          ls -la "dist/ZQ SFX Audio Splitter.app/Contents/Resources/ffmpeg"
-          ls -la "dist/ZQ SFX Audio Splitter.app/Contents/Resources/ffprobe"
+          ls -la "ZQ SFX Audio Splitter.app/Contents/MacOS/ZQ SFX Audio Splitter"
+          ls -la "ZQ SFX Audio Splitter.app/Contents/Resources/ffmpeg"
+          ls -la "ZQ SFX Audio Splitter.app/Contents/Resources/ffprobe"
 
       - name: Final App Bundle Verification
         shell: bash
         run: |
           echo "Final App Bundle Structure:"
-          find "dist/ZQ SFX Audio Splitter.app" -print
+          find "ZQ SFX Audio Splitter.app" -print
 
       - name: Check Executable Dependencies
         shell: bash
         run: |
           echo "Checking dependencies of the main executable..."
-          otool -L "dist/ZQ SFX Audio Splitter.app/Contents/MacOS/ZQ SFX Audio Splitter"
+          otool -L "ZQ SFX Audio Splitter.app/Contents/MacOS/ZQ SFX Audio Splitter"
 
       # Optional: Code Signing (Requires proper setup and certificates)
       # - name: Code Sign App Bundle
       #   if: success()
       #   run: |
-      #     codesign --deep --force --verify --verbose --sign "Developer ID Application: Your Name (Team ID)" "dist/ZQ SFX Audio Splitter.app"
+      #     codesign --deep --force --verify --verbose --sign "Developer ID Application: Your Name (Team ID)" "ZQ SFX Audio Splitter.app"
 
       - name: Upload macOS Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: AudioSplitter-macos-build
-          path: dist/
+          name: macos-build
+          path: "ZQ SFX Audio Splitter.app"
 
   build-windows:
     runs-on: windows-latest

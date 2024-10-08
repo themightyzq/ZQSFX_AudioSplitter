@@ -666,7 +666,7 @@ def on_closing(root, message_queue):
         message_queue (queue.Queue): Queue for inter-thread communication.
     """
     save_config()
-    logger.info("Configuration saved. Exiting application!")
+    logger.info("Configuration saved. Exiting application.")
     root.destroy()
 
 if __name__ == "__main__":
